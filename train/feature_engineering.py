@@ -54,7 +54,6 @@ def create_numeric(data, discretize: bool=True):
 
     deposit_nb = data.groupby("customer_key")["deposit_nb"].sum()
     deposit_amount = data.groupby("customer_key")["deposit_nb"].median()
-    
     res = pd.DataFrame({
         "age":age,
         "transaction_nb":transaction_nb,
@@ -64,14 +63,14 @@ def create_numeric(data, discretize: bool=True):
         "deposit_amount": deposit_amount,
         "user_time": user_time
     })
-    print([r.shape for r in res])
+
     if discretize:
         print("discretizing...")
         est = KBinsDiscretizer(n_bins=12,
                                strategy='quantile',
                                encode="onehot-dense")
         return pd.DataFrame(est.fit_transform(res))
-    return res
+    return res.reset_index(drop=True)
 
 
 if __name__ == "__main__":
@@ -80,12 +79,13 @@ if __name__ == "__main__":
     data = add_labels(data)
     dums, numeric = pipe_data(data), create_numeric(data, discretize=False)
     feat = pd.concat([dums, numeric], axis=1)
+    assert feat.shape[0] == dums.shape[0] == numeric.shape[0], "problem in concatenation"
 
     y = data.groupby("customer_key")["target"].max()
-    print(y.shape, feat.shape)
+    print(y.shape, dums.shape)
     from sklearn.model_selection import cross_val_score
     from sklearn.linear_model import LogisticRegression
 
     lr = LogisticRegression(C=1e-2)
 
-    print(cross_val_score(lr, feat, y, cv=5, n_jobs=-1, scoring="f1").mean())
+    print(cross_val_score(lr, feat, y, cv=5, n_jobs=-1, scoring="accuracy").mean())
