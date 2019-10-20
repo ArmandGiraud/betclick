@@ -52,8 +52,18 @@ def create_numeric(data, discretize: bool=True):
     bet_nb = data.groupby("customer_key")["bet_nb"].sum()
     bet_amount = data.groupby("customer_key")["bet_amount"].apply(get_last)
 
+    bet_var = data.groupby("customer_key")["bet_amount"].var()
+    bet_var = bet_var.fillna(bet_var.median())
+
+    bet_nb_var = data.groupby("customer_key")["bet_nb"].var()
+    bet_nb_var = bet_nb_var.fillna(bet_var.median())
+
     deposit_nb = data.groupby("customer_key")["deposit_nb"].sum()
     deposit_amount = data.groupby("customer_key")["deposit_nb"].median()
+    
+    deposit_var = data.groupby("customer_key")["deposit_nb"].var()
+    deposit_var = deposit_var.fillna(deposit_var.median())
+
     res = pd.DataFrame({
         "age":age,
         "transaction_nb":transaction_nb,
@@ -61,7 +71,10 @@ def create_numeric(data, discretize: bool=True):
         "bet_amount": bet_amount,
         "deposit_nb": deposit_nb,
         "deposit_amount": deposit_amount,
-        "user_time": user_time
+        "user_time": user_time,
+        "bet_var": bet_var,
+        "bet_nb_var": bet_nb_var,
+        "deposit_var": deposit_var,
     })
 
     if discretize:
@@ -70,22 +83,28 @@ def create_numeric(data, discretize: bool=True):
                                strategy='quantile',
                                encode="onehot-dense")
         return pd.DataFrame(est.fit_transform(res))
+
     return res.reset_index(drop=True)
+
 
 
 if __name__ == "__main__":
     from labelling import add_labels, load_data
     data = load_data("../betclic_datascience_test_churn.csv", 300000)
     data = add_labels(data)
+
     dums, numeric = pipe_data(data), create_numeric(data, discretize=False)
     feat = pd.concat([dums, numeric], axis=1)
+
     assert feat.shape[0] == dums.shape[0] == numeric.shape[0], "problem in concatenation"
 
     y = data.groupby("customer_key")["target"].max()
     print(y.shape, dums.shape)
-    from sklearn.model_selection import cross_val_score
-    from sklearn.linear_model import LogisticRegression
 
-    lr = LogisticRegression(C=1e-2)
+    from modelling import fit
 
-    print(cross_val_score(lr, feat, y, cv=5, n_jobs=-1, scoring="accuracy").mean())
+    lr = fit(feat, y)
+
+
+    import joblib
+    joblib.dump(lr, "lr.pkl")
