@@ -24,7 +24,7 @@ class ChrunPrep():
 
         dum = encode_all(data, fit=True)
         num = create_numeric(data, fit=True)
-        feat = pd.concat([dums, numeric], axis=1)
+        feat = pd.concat([dum, num], axis=1)
         scale(feat)
 
         self.is_fitted = True
