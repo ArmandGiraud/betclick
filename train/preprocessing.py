@@ -4,7 +4,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.preprocessing import OneHotEncoder
 
-from features_utils import create_numeric, dumy_encode, encode_all
+from features_utils import create_numeric, dumy_encode, encode_all, scale
 
 
 class ChrunPrep():
@@ -22,10 +22,13 @@ class ChrunPrep():
         data = self.change_dtype(data)
         data = self.drop_leaky_rows(data)
 
-        encode_all(data, fit=True)
-        create_numeric(data, fit=True)
-        
+        dum = encode_all(data, fit=True)
+        num = create_numeric(data, fit=True)
+        feat = pd.concat([dums, numeric], axis=1)
+        scale(feat)
+
         self.is_fitted = True
+
         
     
     def transform(self, data):
@@ -39,7 +42,7 @@ class ChrunPrep():
         
         assert feat.shape[0] == dums.shape[0] == numeric.shape[0],\
         "problem in concatenation, number of rows is different"
-        return feat
+        return scale(feat, fit=False)
         
     def fit_transform(self, data):
         self.is_fitted = True
@@ -51,7 +54,7 @@ class ChrunPrep():
         feat = pd.concat([dums, numeric], axis=1)
         assert feat.shape[0] == dums.shape[0] == numeric.shape[0],\
             "problem in concatenation, number of rows is different"
-        return feat
+        return scale(feat, fit=True)
     
     def create_labels(self, data, churn_def:int =90):
         data = self.drop_leaky_rows(data)

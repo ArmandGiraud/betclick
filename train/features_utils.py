@@ -4,7 +4,7 @@ import pandas as pd
 import datetime as dt
 
 from sklearn.exceptions import NotFittedError
-from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder
+from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, MinMaxScaler
 
 def dumy_encode(col, data, robust_thres:int = 100):
     print("encoding col: {}".format(col))
@@ -125,6 +125,19 @@ def encode_all(data, fit=True):
         cmap = joblib.load("cmap")
         flat = data.replace(cmap).groupby("customer_key")[to_encode].max()
         return pd.DataFrame(ohe.transform(flat))
+
+
+def scale(data, fit=True):
+    print("scaling...")
+    if fit:
+        scaler = MinMaxScaler()
+        res = scaler.fit_transform(data)
+        joblib.dump(scaler, "scaler")
+    else:
+        scaler = joblib.load("scaler")
+        res = scaler.transform(data)
+    return res
+
 
 if __name__ == "__main__":
     pass
