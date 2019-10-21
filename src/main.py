@@ -19,7 +19,7 @@ parser.add_argument("-d", "--data_path",
 
 parser.add_argument("-m", "--model_type",
                     type=str,
-                    default="lr",
+                    default="etf",
                     help="""type of model to fit (one of [lr, gb, etf])
                             lr: LogisticRegressuion
                             gb: Gradient Boosted Trees
@@ -32,6 +32,11 @@ parser.add_argument("-p", "--predict",
 parser.add_argument("-o", "--out_path",
                     type=str,
                     default="./preds",
+                    help="folder to write predictions")
+
+parser.add_argument("-p", "--private_file",
+                    type=str,
+                    default=False,
                     help="folder to write predictions")
 
 args = parser.parse_args()
@@ -56,7 +61,11 @@ def fit(args):
 
 
 def predict(args):
-    data = load_data(data_path, samp_size=100000, all_=False)
+    if not args.private_file:
+        data = load_data(data_path, samp_size=100000, all_=False)
+    else:
+        data = load_data(args.private_file)
+        
     cp = ChrunPrep()
     X, index = cp.transform(data)
 
