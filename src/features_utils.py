@@ -1,10 +1,15 @@
 
+import os
+import datetime as dt
+
 import joblib
 import pandas as pd
-import datetime as dt
+
 
 from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, MinMaxScaler
+
+SERIAL_PATH = "./serials"
 
 def dumy_encode(col, data, robust_thres:int = 100):
     print("encoding col: {}".format(col))
@@ -58,26 +63,41 @@ def create_numeric(data, fit: bool=True, discretize: bool=False):
     bet_nb_var = data.groupby("customer_key")["bet_nb"].var()
     bet_amount_var = data.groupby("customer_key")["deposit_nb"].var()
     
+    # _1
+    rentability = data.groupby("customer_key")["deposit_nb"].mean()
+    rentability_var = data.groupby("customer_key")["deposit_nb"].var()
+
+    # variations:
+    print("variation")
+    days = data.sort_values("transaction_date").groupby("customer_key")["transaction_date"].apply(time_dif)
+    days3 = data.sort_values("transaction_date").groupby("customer_key")["transaction_date"].apply(time_dif, last3=False)
+
+
     if fit:
-        
         medians = dict(
             age_med = age.median(),
             dep_med = deposit_var.median(),
             betnb_med = bet_nb_var.median(),
             betvar_med = bet_var.median(),
-            betam_var = bet_amount_var.median()
+            betam_var_med = bet_amount_var.median(),
+            renta_var = rentability_var.median(),
+            days_med = days.median(),
+            days3_med = days3.median()
         )
         
-        joblib.dump(medians, "medians")
+        joblib.dump(medians, os.path.join(SERIAL_PATH, "medians"))
     else:
-        medians = joblib.load("medians")
+        medians = joblib.load(os.path.join(SERIAL_PATH, "medians"))
         
     age = age.fillna(medians["age_med"])
     deposit_var = deposit_var.fillna(medians["dep_med"])
     bet_nb_var = bet_nb_var.fillna(medians["betnb_med"])
     bet_var = bet_var.fillna(medians["betvar_med"])
-    bet_amount_var = bet_amount_var.fillna(medians["betam_var"])
-        
+    bet_amount_var = bet_amount_var.fillna(medians["betam_var_med"])
+    rentability_var =  rentability_var.fillna(medians["betam_var_med"])
+    days =  days.fillna(medians["days_med"])
+    days3 =  days3.fillna(medians["days3_med"])
+
     res = pd.DataFrame({
         "age":age,
         "transaction_nb":transaction_nb,
@@ -87,15 +107,19 @@ def create_numeric(data, fit: bool=True, discretize: bool=False):
         "deposit_amount": deposit_amount,
         "user_time": user_time,
         "bet_var": bet_var,
-        "bet_nb_var": bet_nb_var,
+        #"bet_nb_var": bet_nb_var,
         "deposit_var": deposit_var,
-        "bet_amount_var":bet_amount_var
+        "bet_amount_var":bet_amount_var,
+        "rentability":rentability,
+        "rentability_var":rentability_var,
+        "days_interval":days,
+        "days3":days3
     })
     
     
     if discretize:
         raise NotImplementedError("discretize not giving better results...")
-        print("discretizing...")
+        print("discretizing...") 
         est = KBinsDiscretizer(n_bins=12,
                                strategy='quantile',
                                encode="onehot-dense")
@@ -104,7 +128,7 @@ def create_numeric(data, fit: bool=True, discretize: bool=False):
     return res.reset_index(drop=True)
 
 def encode_all(data, fit=True):
-    to_encode = ["gender","acquisition_channel_id", "betclic_customer_segmentation"]
+    to_encode = ["gender", "acquisition_channel_id", "betclic_customer_segmentation"]
 
     if fit:
         r = [dumy_encode(d, data) for d in to_encode]
@@ -115,14 +139,14 @@ def encode_all(data, fit=True):
         dums = pd.DataFrame(ohe.fit_transform(res))
         
         # serialize data
-        joblib.dump(ohe, "ohe")
+        joblib.dump(ohe, os.path.join(SERIAL_PATH, "ohe"))
         cmap = {k: v for d in cmap for k, v in d.items()} # unpack list of dict to pandas replace format
-        joblib.dump(cmap, "cmap")
+        joblib.dump(cmap, os.path.join(SERIAL_PATH, "cmap"))
         return dums
     else:
         print("loading artefacts...")
-        ohe = joblib.load("ohe")
-        cmap = joblib.load("cmap")
+        ohe = joblib.load(os.path.join(SERIAL_PATH, "ohe"))
+        cmap = joblib.load(os.path.join(SERIAL_PATH, "cmap"))
         flat = data.replace(cmap).groupby("customer_key")[to_encode].max()
         return pd.DataFrame(ohe.transform(flat))
 
@@ -132,12 +156,22 @@ def scale(data, fit=True):
     if fit:
         scaler = MinMaxScaler()
         res = scaler.fit_transform(data)
-        joblib.dump(scaler, "scaler")
+        joblib.dump(scaler, os.path.join(SERIAL_PATH, "scaler"))
     else:
-        scaler = joblib.load("scaler")
+        scaler = joblib.load(os.path.join(SERIAL_PATH, "scaler"))
         res = scaler.transform(data)
     return res
 
+
+def time_dif(data, last3=True):
+    diff = list()
+    for i in range(1, len(data)):
+        value = (data.iloc[i] - data.iloc[i - 1]).days
+        diff.append(value)
+    
+    if last3:
+        return pd.Series(diff[-3:]).mean()
+    return pd.Series(diff).mean()
 
 if __name__ == "__main__":
     pass
