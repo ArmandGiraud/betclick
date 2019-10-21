@@ -34,7 +34,7 @@ parser.add_argument("-o", "--out_path",
                     default="./preds",
                     help="folder to write predictions")
 
-parser.add_argument("-p", "--private_file",
+parser.add_argument("-f", "--private_file",
                     type=str,
                     default=False,
                     help="folder to write predictions")
@@ -48,8 +48,8 @@ out_path = os.path.join(args.out_path, "preds.csv")
     
 cp = ChrunPrep()
 
-
 def fit(args):
+    "fit preprocessor and model"
     data = load_data(data_path, samp_size=10000, all_=False)
 
     
@@ -59,13 +59,13 @@ def fit(args):
     mo = Modelling(model= args.model_type)
     mo.fit(X, y)
 
-
 def predict(args):
+    "perdict on a given dataset"
     if not args.private_file:
         data = load_data(data_path, samp_size=100000, all_=False)
     else:
         data = load_data(args.private_file)
-        
+
     cp = ChrunPrep()
     X, index = cp.transform(data)
 
@@ -76,6 +76,14 @@ def predict(args):
 
 
 def main(args):
+    download_extract(args.data_path)
+    if args.private_file and (not args.predict):
+            ui = input("are you sure to fit your data on {} [Y/n]"\
+                .format(args.private_file))
+            if ui.lower()!="y":
+                print("stopping..")
+                return 1
+
     if args.predict:
         predict(args)
     else:
@@ -85,7 +93,7 @@ def main(args):
 if __name__ == "__main__":
     warnings.filterwarnings('ignore')
 
-    download_extract(args.data_path)
+  
     main(args)
 
     
