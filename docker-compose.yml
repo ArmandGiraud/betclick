@@ -1,7 +1,9 @@
 version: "3"
 services:
   churn:
+    environment:
+     - PASSWORD=ChangeMeToPassword
     build:
       context: .
       dockerfile: ./Dockerfile
-
+    command: python src/main.py
