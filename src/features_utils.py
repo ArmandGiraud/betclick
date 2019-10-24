@@ -63,8 +63,8 @@ def create_numeric(data, fit: bool = True, discretize: bool = False):
         return data.iloc[-1]
 
     # compute the number of bets
-    bet_nb = data.groupby("customer_key")["bet_nb"].sum()
-    bet_amount = data.groupby("customer_key")["bet_amount"].apply(get_last)
+    bet_nb = data.groupby("customer_key")["bet_nb"].apply(get_last)
+    bet_amount = data.groupby("customer_key")["bet_amount"].median()
     # compute the number deposits and  median amount
     deposit_nb = data.groupby("customer_key")["deposit_nb"].sum()
     deposit_amount = data.groupby("customer_key")["deposit_nb"].median()
