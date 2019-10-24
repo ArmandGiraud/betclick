@@ -29,6 +29,7 @@ def download_extract(dir_path):
                 password = input("enter zip password: ")
             else:
                 password = os.environ["PASSWORD"]
+            print(password)
             zip_ref.setpassword(str.encode(password))
 
             print("extracting dataset in {}".format(dir_path))
