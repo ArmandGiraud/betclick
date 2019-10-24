@@ -7,7 +7,7 @@ import os
 import pandas as pd
 #internal import
 
-from download import download_extract
+from download import download_extract, maybe_mkdir
 from loader import load_data
 from preprocessing import ChrunPrep
 from modelling import Modelling
@@ -70,6 +70,7 @@ def predict(args):
 
     classifier = Modelling(args.model_type)
     preds = classifier.predict(X)
+    maybe_mkdir(args.out_path)
     out_path = os.path.join(args.out_path, "preds.csv")
     pd.Series(preds, index=index).to_csv(out_path, sep=";")
 

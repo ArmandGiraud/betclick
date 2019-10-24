@@ -33,3 +33,8 @@ def download_extract(dir_path):
 
             print("extracting dataset in {}".format(dir_path))
             zip_ref.extractall(dir_path)
+
+def maybe_mkdir(dir_path):
+    "make dir iiif not exists"
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)

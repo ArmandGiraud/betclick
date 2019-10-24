@@ -9,6 +9,8 @@ import pandas as pd
 
 from sklearn.preprocessing import KBinsDiscretizer, OneHotEncoder, MinMaxScaler
 
+from download import maybe_mkdir
+
 SERIAL_PATH = "./serials"
 
 def dumy_encode(col, data, robust_thres: int = 100):
@@ -153,6 +155,7 @@ def encode_all(data, fit=True):
         dums = pd.DataFrame(ohe.fit_transform(res))
         
         # serialize data
+        maybe_mkdir(SERIAL_PATH)
         joblib.dump(ohe, os.path.join(SERIAL_PATH, "ohe"))
         # unpack list of dict to pandas replace format
         cmap = {k: v for d in cmap for k, v in d.items()} 
