@@ -8,8 +8,8 @@ This repo contains an Assignment for betclick
 
 ---
 Run with docker:
-change env variable `PASSWORD` in docker-compose
-`sudo docker-compose up --build`
+change env variable `PASSWORD` in docker-compose
+`sudo docker-compose up --build`
 
 ### Fit
 
