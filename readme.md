@@ -3,8 +3,9 @@ This repo contains an Assignment for betclick
 
 ### Install:
  - clone the repo
+  - `pip install -r "requirements.txt"``
  - `cd ./src`
- - `pip install -r "requirements.txt"``
+
 
 ---
 Run with docker:
