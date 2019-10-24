@@ -4,6 +4,12 @@ This repo contains an Assignment for betclick
 ### Install:
  - clone the repo
  - `cd ./src`
+ - `pip install -r "requirements.txt"``
+
+---
+Run with docker:
+change env variable `PASSWORD` in docker-compose
+`sudo docker-compose up --build`
 
 ### Fit
 
@@ -11,7 +17,7 @@ This repo contains an Assignment for betclick
     ```python main.py```
 
 The script will:
-    - download the data, and ask a password for unzipping
+    - download the data, and optionnally ask a password for unzipping
     - label the data and drop leaky rows
     - preprocess and write serializables necessary for inference on disk
 
