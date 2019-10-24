@@ -25,7 +25,10 @@ def download_extract(dir_path):
         download(URL, save_path)
 
         with zf.ZipFile(save_path, 'r') as zip_ref:
-            password = input("enter zip password: ")
+            if os.environ.get("PASSWORD") is None:
+                password = input("enter zip password: ")
+            else:
+                password = os.environ["PASSWORD"]
             zip_ref.setpassword(str.encode(password))
 
             print("extracting dataset in {}".format(dir_path))

@@ -46,11 +46,11 @@ class Modelling():
                            validation_fraction=0.1, verbose=0),
 
             "etf": ExtraTreesClassifier(bootstrap=True, class_weight=None, criterion='entropy',
-                     max_depth=None, max_features=0.9159744542919692,
+                     max_depth=None, max_features=0.88,
                      max_leaf_nodes=None, min_impurity_decrease=0.0,
-                     min_impurity_split=None, min_samples_leaf=4,
+                     min_impurity_split=None, min_samples_leaf=9,
                      min_samples_split=2, min_weight_fraction_leaf=0.0,
-                     n_estimators=23, n_jobs=-1, oob_score=False, random_state=0,
+                     n_estimators=363, n_jobs=-1, oob_score=False, random_state=0,
                      verbose=False, warm_start=False)
         }
         if self.model not in ["lr", "gb", "etf"]:

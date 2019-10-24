@@ -1,6 +1,10 @@
 # Betclick Churn Analysis
 This repo contains an Assignment for betclick
 
+### Install:
+ - clone the repo
+ - `cd ./src`
+
 ### Fit
 
 - fit the model on data using:
